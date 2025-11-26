@@ -15,8 +15,21 @@ export default function Welcome() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  // Debug: Log when component mounts/unmounts
+  console.log('Welcome component rendered, username:', username)
+
   const handleSubmit = async (e) => {
     e.preventDefault()
+    e.stopPropagation()
+    
+    console.log('Form submitted with username:', username)
+    
+    // Prevent double submission
+    if (loading) {
+      console.log('Already loading, ignoring submit')
+      return
+    }
+    
     setError('')
 
     if (username.length < 3) {
@@ -38,22 +51,25 @@ export default function Welcome() {
       const sessionKey = `first_login_checked_${user.id}`
       sessionStorage.setItem(sessionKey, 'true')
 
-      await axios.put(
+      console.log('Sending username update request...')
+      const response = await axios.put(
         `${import.meta.env.VITE_API_URL}/api/profile/username`,
         { username },
         {
           headers: { Authorization: `Bearer ${token}` }
         }
       )
+      console.log('Username update successful:', response.data)
 
       // Success! Redirect to court
-      navigate('/court')
+      console.log('Navigating to /court')
+      navigate('/court', { replace: true })
     } catch (err) {
+      console.error('Username update failed:', err)
       // If API call fails, remove the session flag so user can try again
       const sessionKey = `first_login_checked_${user.id}`
       sessionStorage.removeItem(sessionKey)
       setError(err.response?.data?.error || 'Failed to set username')
-    } finally {
       setLoading(false)
     }
   }

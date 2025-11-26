@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { supabase } from '../services/supabase'
 import LeBot from '../components/LeBot'
+import Navigation from '../components/common/Navigation'
 
 /**
  * Convert game datetime from database (stored as ISO string) to user's local time
@@ -159,7 +160,7 @@ const groupGamesByDate = (games) => {
 }
 
 export default function Court() {
-  const { user, session, signOut } = useAuth()
+  const { user, session } = useAuth()
   const navigate = useNavigate()
   const [games, setGames] = useState({ upcoming: [], recent: [] })
   const [predictions, setPredictions] = useState({})
@@ -362,16 +363,16 @@ export default function Court() {
     <div className="min-h-screen bg-gray-100 p-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow p-6 mb-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-orange-600">🏀 The Court</h1>
-              <p className="text-gray-600 mt-1">Welcome, {user?.email}</p>
+        <div className="bg-white rounded-lg shadow p-4 md:p-6 mb-4">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+            <div className="flex-1">
+              <h1 className="text-2xl md:text-3xl font-bold text-orange-600">🏀 The Court</h1>
+              <p className="text-sm md:text-base text-gray-600 mt-1">Welcome, {user?.email}</p>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="text-right border-r pr-4">
-                <div className="text-sm text-gray-500">Your Balance</div>
-                <div className="text-2xl font-bold text-orange-600">
+            <div className="flex items-center justify-between md:justify-end gap-3 md:gap-4">
+              <div className="text-left md:text-right md:border-r md:pr-4">
+                <div className="text-xs md:text-sm text-gray-500">Your Balance</div>
+                <div className="text-xl md:text-2xl font-bold text-orange-600">
                   {userPoints.spendable} pts
                 </div>
                 <div className="text-xs text-gray-400">
@@ -388,30 +389,9 @@ export default function Court() {
                   🔄 Refresh
                 </button>
               </div>
-              <button
-                onClick={() => navigate('/leaderboard')}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors"
-              >
-                🏆 Leaderboard
-              </button>
-              <button
-                onClick={() => navigate('/profile')}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                👤 Profile
-              </button>
-              <button
-                onClick={() => navigate('/shop')}
-                className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
-              >
-                🛍️ Shop
-              </button>
-              <button
-                onClick={signOut}
-                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
-              >
-                Logout
-              </button>
+              <div className="relative">
+                <Navigation currentPage="Court" />
+              </div>
             </div>
           </div>
         </div>

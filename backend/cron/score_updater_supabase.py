@@ -25,16 +25,18 @@ def update_scores():
     print(f"{'='*60}")
     
     try:
-        # Step 1: Get games from the last 2 days
+        # Step 1: Get games from yesterday, today, and tomorrow
+        # This ensures the games endpoint always has fresh data
         today = datetime.now().date()
-        two_days_ago = today - timedelta(days=2)
+        yesterday = today - timedelta(days=1)
+        tomorrow = today + timedelta(days=1)
         
-        print(f"📅 Checking games from {two_days_ago} to {today}")
+        print(f"📅 Fetching games from {yesterday} to {tomorrow}")
         
         # Fetch games from API
         games_response = bdl.nba.games.list(
-            start_date=two_days_ago.strftime('%Y-%m-%d'),
-            end_date=today.strftime('%Y-%m-%d'),
+            start_date=yesterday.strftime('%Y-%m-%d'),
+            end_date=tomorrow.strftime('%Y-%m-%d'),
             per_page=100
         )
         

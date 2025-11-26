@@ -5,9 +5,10 @@ import { useAuth } from '../contexts/AuthContext'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import Navigation from '../components/common/Navigation'
 
 export default function Profile() {
-  const { user, session, signOut } = useAuth()
+  const { user, session } = useAuth()
   const navigate = useNavigate()
   const [userProfile, setUserProfile] = useState(null)
   const [stats, setStats] = useState(null)
@@ -173,20 +174,20 @@ export default function Profile() {
     <div className="min-h-screen bg-gray-100 p-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow p-6 mb-4">
-          <div className="flex justify-between items-center">
+        <div className="bg-white rounded-lg shadow p-4 md:p-6 mb-4">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-orange-600">👤 My Player</h1>
+              <h1 className="text-2xl md:text-3xl font-bold text-orange-600">👤 My Player</h1>
               
               {/* Username Display/Edit */}
               <div className="mt-2 flex items-center gap-2">
                 {editingUsername ? (
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <input
                       type="text"
                       value={newUsername}
                       onChange={(e) => setNewUsername(e.target.value)}
-                      className="px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                      className="px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm md:text-base"
                       maxLength={20}
                       autoFocus
                     />
@@ -210,7 +211,7 @@ export default function Profile() {
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
-                    <span className="text-xl font-semibold text-gray-700">{username}</span>
+                    <span className="text-lg md:text-xl font-semibold text-gray-700">{username}</span>
                     <button
                       onClick={() => setEditingUsername(true)}
                       className="text-orange-500 hover:text-orange-600 text-sm"
@@ -224,31 +225,8 @@ export default function Profile() {
                 <p className="text-red-500 text-sm mt-1">{usernameError}</p>
               )}
             </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => navigate('/court')}
-                className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
-              >
-                Court
-              </button>
-              <button
-                onClick={() => navigate('/leaderboard')}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600"
-              >
-                Leaderboard
-              </button>
-              <button
-                onClick={() => navigate('/shop')}
-                className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600"
-              >
-                Shop
-              </button>
-              <button
-                onClick={signOut}
-                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
-              >
-                Logout
-              </button>
+            <div className="relative">
+              <Navigation currentPage="Profile" />
             </div>
           </div>
         </div>

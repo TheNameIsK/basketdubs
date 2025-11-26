@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import Navigation from '../components/common/Navigation'
 
 export default function Shop() {
   const { user, session } = useAuth()
@@ -116,35 +117,20 @@ export default function Shop() {
     <div className="min-h-screen bg-gray-100 p-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow p-6 mb-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-orange-600">🛍️ The Locker Room</h1>
-              <p className="text-gray-600 mt-1">Customize your player</p>
+        <div className="bg-white rounded-lg shadow p-4 md:p-6 mb-4">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+            <div className="flex-1">
+              <h1 className="text-2xl md:text-3xl font-bold text-orange-600">🛍️ The Locker Room</h1>
+              <p className="text-sm md:text-base text-gray-600 mt-1">Customize your player</p>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <div className="text-sm text-gray-500">Your Balance</div>
-                <div className="text-2xl font-bold text-green-600">{userPoints} pts</div>
+            <div className="flex items-center justify-between md:justify-end gap-3 md:gap-4">
+              <div className="text-left md:text-right md:border-r md:pr-4">
+                <div className="text-xs md:text-sm text-gray-500">Your Balance</div>
+                <div className="text-xl md:text-2xl font-bold text-green-600">{userPoints} pts</div>
               </div>
-              <button
-                onClick={() => navigate('/court')}
-                className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
-              >
-                Court
-              </button>
-              <button
-                onClick={() => navigate('/leaderboard')}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600"
-              >
-                Leaderboard
-              </button>
-              <button
-                onClick={() => navigate('/profile')}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
-              >
-                Profile
-              </button>
+              <div className="relative">
+                <Navigation currentPage="Shop" />
+              </div>
             </div>
           </div>
         </div>

@@ -122,18 +122,14 @@ def cleanup_old_games(supabase):
 @games_bp.route('', methods=['GET'])
 def get_games():
     """
-    Get games from Supabase (with smart refresh from API)
+    Get games from Supabase (read-only, cron job handles updates)
     Returns games for: yesterday, today, and tomorrow (in server time)
     """
     try:
         supabase = get_supabase_client()
         
-        # Check if we need to refresh from API
-        if should_refresh_cache():
-            print("📡 Cache expired, fetching from API...")
-            fetch_and_store_games()
-        else:
-            print("✓ Using cached games from Supabase")
+        # Just read from Supabase - cron job handles API calls
+        print("✓ Reading games from Supabase")
         
         # Fetch games from Supabase: yesterday, today, tomorrow
         # Use datetime to ensure proper comparison with timestamp columns

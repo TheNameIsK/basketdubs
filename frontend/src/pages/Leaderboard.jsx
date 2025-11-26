@@ -5,9 +5,10 @@ import { useAuth } from '../contexts/AuthContext'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import Navigation from '../components/common/Navigation'
 
 export default function Leaderboard() {
-  const { user, session, signOut } = useAuth()
+  const { user, session } = useAuth()
   const navigate = useNavigate()
   const [leaderboard, setLeaderboard] = useState([])
   const [currentUserRank, setCurrentUserRank] = useState(null)
@@ -61,37 +62,14 @@ export default function Leaderboard() {
     <div className="min-h-screen bg-gray-100 p-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow p-6 mb-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-orange-600">🏆 Leaderboard</h1>
-              <p className="text-gray-600 mt-1">Top predictors by all-time points</p>
+        <div className="bg-white rounded-lg shadow p-4 md:p-6 mb-4">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+            <div className="flex-1">
+              <h1 className="text-2xl md:text-3xl font-bold text-orange-600">🏆 Leaderboard</h1>
+              <p className="text-sm md:text-base text-gray-600 mt-1">Top predictors by all-time points</p>
             </div>
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => navigate('/court')}
-                className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors"
-              >
-                🏀 Court
-              </button>
-              <button
-                onClick={() => navigate('/shop')}
-                className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
-              >
-                🛍️ Shop
-              </button>
-              <button
-                onClick={() => navigate('/profile')}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                👤 Profile
-              </button>
-              <button
-                onClick={signOut}
-                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
-              >
-                Logout
-              </button>
+            <div className="relative">
+              <Navigation currentPage="Leaderboard" />
             </div>
           </div>
         </div>

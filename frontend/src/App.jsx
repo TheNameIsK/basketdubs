@@ -12,18 +12,21 @@ import Leaderboard from './pages/Leaderboard'
 // Protected Route wrapper with first-login check
 function ProtectedRoute({ children, skipWelcomeCheck = false }) {
   const { user, session, loading } = useAuth()
-  const [checkingFirstLogin, setCheckingFirstLogin] = useState(!skipWelcomeCheck)
+  
+  // Check sessionStorage synchronously to set initial state correctly
+  const getInitialCheckingState = () => {
+    if (skipWelcomeCheck) return false
+    if (!user) return false
+    const sessionKey = `first_login_checked_${user.id}`
+    const alreadyChecked = sessionStorage.getItem(sessionKey)
+    return !alreadyChecked // Only check if not already checked
+  }
+  
+  const [checkingFirstLogin, setCheckingFirstLogin] = useState(getInitialCheckingState)
   const [isFirstLogin, setIsFirstLogin] = useState(false)
 
   useEffect(() => {
-    if (user && session && !skipWelcomeCheck) {
-      checkFirstLogin()
-    } else if (skipWelcomeCheck) {
-      setCheckingFirstLogin(false)
-    }
-  }, [user, session, skipWelcomeCheck])
-
-  const checkFirstLogin = async () => {
+    const checkFirstLogin = async () => {
     try {
       const token = session?.access_token
       if (!token) {
@@ -69,6 +72,13 @@ function ProtectedRoute({ children, skipWelcomeCheck = false }) {
     }
   }
 
+    if (user && session && !skipWelcomeCheck) {
+      checkFirstLogin()
+    } else if (skipWelcomeCheck) {
+      setCheckingFirstLogin(false)
+    }
+  }, [user, session, skipWelcomeCheck])
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -91,10 +101,11 @@ function ProtectedRoute({ children, skipWelcomeCheck = false }) {
   }
 
   if (isFirstLogin && !skipWelcomeCheck) {
-    console.log('Redirecting to welcome page...')
+    console.log(`🔄 Redirecting to welcome page... (isFirstLogin: ${isFirstLogin}, checkingFirstLogin: ${checkingFirstLogin})`)
     return <Navigate to="/welcome" replace />
   }
 
+  console.log(`✅ Rendering protected content (isFirstLogin: ${isFirstLogin}, checkingFirstLogin: ${checkingFirstLogin})`)
   return children
 }
 

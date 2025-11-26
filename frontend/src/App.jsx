@@ -27,6 +27,7 @@ function ProtectedRoute({ children, skipWelcomeCheck = false }) {
     try {
       const token = session?.access_token
       if (!token) {
+        console.log('❌ No token, skipping first login check')
         setCheckingFirstLogin(false)
         return
       }
@@ -35,28 +36,32 @@ function ProtectedRoute({ children, skipWelcomeCheck = false }) {
       const sessionKey = `first_login_checked_${user.id}`
       const alreadyChecked = sessionStorage.getItem(sessionKey)
       
+      console.log(`🔍 Checking sessionStorage for key: ${sessionKey}, value: ${alreadyChecked}`)
+      
       if (alreadyChecked) {
-        console.log('First login already checked this session, skipping...')
+        console.log('✅ First login already checked this session, skipping API call')
         setIsFirstLogin(false)
         setCheckingFirstLogin(false)
         return
       }
 
-      console.log('Checking first login status...')
+      console.log('📡 Making API call to check first login status...')
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/api/profile/check-first-login`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
       )
-      console.log('First login check result:', response.data)
+      console.log('📊 First login check result:', response.data)
       
       // Mark as checked in sessionStorage (persists until browser tab closes)
       sessionStorage.setItem(sessionKey, 'true')
+      console.log(`💾 Set sessionStorage ${sessionKey} = true`)
       
       setIsFirstLogin(response.data.is_first_login)
+      console.log(`🎯 setIsFirstLogin(${response.data.is_first_login})`)
     } catch (err) {
-      console.error('Failed to check first login:', err)
+      console.error('❌ Failed to check first login:', err)
       // On error, assume not first login to avoid blocking
       setIsFirstLogin(false)
     } finally {

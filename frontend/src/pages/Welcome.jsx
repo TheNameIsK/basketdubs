@@ -42,6 +42,9 @@ export default function Welcome() {
       return
     }
 
+    // Store username in a variable to prevent state issues during async operations
+    const usernameToSubmit = username
+
     try {
       setLoading(true)
       const token = session?.access_token
@@ -54,12 +57,15 @@ export default function Welcome() {
       console.log('Sending username update request...')
       const response = await axios.put(
         `${import.meta.env.VITE_API_URL}/api/profile/username`,
-        { username },
+        { username: usernameToSubmit },
         {
           headers: { Authorization: `Bearer ${token}` }
         }
       )
       console.log('Username update successful:', response.data)
+
+      // Small delay to ensure backend has processed the update
+      await new Promise(resolve => setTimeout(resolve, 100))
 
       // Success! Redirect to court
       console.log('Navigating to /court')

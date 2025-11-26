@@ -22,8 +22,16 @@ function ProtectedRoute({ children, skipWelcomeCheck = false }) {
     return !alreadyChecked // Only check if not already checked
   }
   
+  const getInitialFirstLoginState = () => {
+    if (!user) return false
+    const sessionKey = `first_login_checked_${user.id}`
+    const alreadyChecked = sessionStorage.getItem(sessionKey)
+    // If already checked, we know it's NOT first login
+    return false
+  }
+  
   const [checkingFirstLogin, setCheckingFirstLogin] = useState(getInitialCheckingState)
-  const [isFirstLogin, setIsFirstLogin] = useState(false)
+  const [isFirstLogin, setIsFirstLogin] = useState(getInitialFirstLoginState)
 
   useEffect(() => {
     const checkFirstLogin = async () => {

@@ -33,6 +33,11 @@ export default function Welcome() {
       setLoading(true)
       const token = session?.access_token
 
+      // Set the session flag BEFORE making the API call
+      // This prevents the race condition where navigation happens before flag is set
+      const sessionKey = `first_login_checked_${user.id}`
+      sessionStorage.setItem(sessionKey, 'true')
+
       await axios.put(
         `${import.meta.env.VITE_API_URL}/api/profile/username`,
         { username },
@@ -41,13 +46,12 @@ export default function Welcome() {
         }
       )
 
-      // Clear the first login check flag so it won't check again
-      const sessionKey = `first_login_checked_${user.id}`
-      sessionStorage.setItem(sessionKey, 'true')
-
       // Success! Redirect to court
       navigate('/court')
     } catch (err) {
+      // If API call fails, remove the session flag so user can try again
+      const sessionKey = `first_login_checked_${user.id}`
+      sessionStorage.removeItem(sessionKey)
       setError(err.response?.data?.error || 'Failed to set username')
     } finally {
       setLoading(false)

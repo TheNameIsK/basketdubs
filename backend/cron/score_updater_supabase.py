@@ -16,6 +16,24 @@ from supabase_client import get_supabase_client
 bdl = BalldontlieAPI(api_key=BALLDONTLIE_API_KEY)
 supabase = get_supabase_client()
 
+def cleanup_old_games():
+    """
+    Delete games older than 7 days
+    This keeps the database size manageable
+    """
+    try:
+        cutoff_date = datetime.now() - timedelta(days=7)
+        
+        # Delete old games
+        result = supabase.table('games').delete().lt(
+            'game_date', cutoff_date.isoformat()
+        ).execute()
+        
+        if result.data:
+            print(f"🗑️  Cleaned up {len(result.data)} old games (older than 7 days)")
+    except Exception as e:
+        print(f"⚠️  Failed to clean up old games: {e}")
+
 def update_scores():
     """
     Main function that runs every 10 minutes
@@ -80,6 +98,9 @@ def update_scores():
         if games_to_update:
             supabase.table('games').upsert(games_to_update).execute()
             print(f"✓ Updated {len(games_to_update)} games in database")
+            
+            # Clean up old games (older than 7 days)
+            cleanup_old_games()
         
         print(f"✓ Found {len(finished_game_ids)} finished games")
         

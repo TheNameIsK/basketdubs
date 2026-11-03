@@ -1,6 +1,5 @@
 /**
  * My Player - Profile & Avatar Editor
- * VINTAGE REDESIGN: Trading Card Style Profile
  */
 import { useAuth } from '../contexts/AuthContext'
 import { useState, useEffect } from 'react'
@@ -9,7 +8,7 @@ import axios from 'axios'
 import Navigation from '../components/common/Navigation'
 
 export default function Profile() {
-  const { user, session, signOut } = useAuth()
+  const { user, session } = useAuth()
   const navigate = useNavigate()
   const [userProfile, setUserProfile] = useState(null)
   const [stats, setStats] = useState(null)
@@ -21,7 +20,6 @@ export default function Profile() {
   const [usernameError, setUsernameError] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [activeTab, setActiveTab] = useState('stats')
 
   useEffect(() => {
     fetchProfile()
@@ -114,417 +112,385 @@ export default function Profile() {
     }
   }
 
-  // Trading Card Component
-  const TradingCardProfile = () => {
-    const winRate = stats?.correct_predictions && stats?.total_predictions 
-      ? Math.round((stats.correct_predictions / stats.total_predictions) * 100)
-      : 0
-    
-    return (
-      <div className="trading-card relative overflow-hidden">
-        {/* Card Header */}
-        <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-burnt-orange to-scoreboard-red p-3">
-          <div className="font-bebas text-2xl text-vintage-cream tracking-widest">
-            PLAYER PROFILE CARD
-          </div>
-        </div>
-        
-        {/* Player Info */}
-        <div className="pt-16 pb-6">
-          {/* Avatar Display */}
-          <div className="flex items-center justify-center mb-6">
-            <div className="relative">
-              {/* Avatar Layers */}
-              <div className="w-48 h-48 bg-gradient-to-br from-vintage-cream to-burnt-orange/30 border-3 border-ink-black flex items-center justify-center">
-                <div className="text-6xl">🏀</div>
-              </div>
-              {/* Rookie Season Badge */}
-              {stats?.join_date && (
-                <div className="absolute -top-3 -right-3 vintage-stamp bg-vintage-navy">
-                  ROOKIE {new Date(stats.join_date).getFullYear()}
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {/* Player Name */}
-          <div className="text-center mb-6">
-            <div className="font-bebas text-4xl mb-1">{username}</div>
-            <div className="text-sm text-ink-black/60 font-roboto-slab">
-              #{stats?.rank || 'N/A'} IN THE LEAGUE
-            </div>
-          </div>
-          
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="text-center p-3 border-2 border-ink-black/20">
-              <div className="font-bebas text-3xl text-burnt-orange">
-                {stats?.total_predictions || 0}
-              </div>
-              <div className="text-xs text-ink-black/60 mt-1">CAREER PICKS</div>
-            </div>
-            
-            <div className="text-center p-3 border-2 border-ink-black/20">
-              <div className="font-bebas text-3xl text-forest-green">
-                {stats?.correct_predictions || 0}
-              </div>
-              <div className="text-xs text-ink-black/60 mt-1">WINS</div>
-            </div>
-            
-            <div className="text-center p-3 border-2 border-ink-black/20">
-              <div className="font-bebas text-3xl text-vintage-navy">
-                {winRate}%
-              </div>
-              <div className="text-xs text-ink-black/60 mt-1">ACCURACY</div>
-            </div>
-            
-            <div className="text-center p-3 border-2 border-ink-black/20">
-              <div className="font-bebas text-3xl text-scoreboard-red">
-                {stats?.current_streak || 0}
-              </div>
-              <div className="text-xs text-ink-black/60 mt-1">STREAK</div>
-            </div>
-          </div>
-          
-          {/* Season Record */}
-          <div className="mb-6">
-            <div className="text-center mb-2">
-              <div className="font-bebas text-lg">SEASON RECORD</div>
-              <div className="text-sm text-ink-black/60">
-                {new Date().getFullYear()} CAMPAIGN
-              </div>
-            </div>
-            <div className="flex justify-center gap-4">
-              <div className="text-center">
-                <div className="font-bebas text-3xl text-forest-green">{stats?.wins || 0}</div>
-                <div className="text-xs text-ink-black/60">WINS</div>
-              </div>
-              <div className="text-center">
-                <div className="font-bebas text-3xl text-scoreboard-red">{stats?.losses || 0}</div>
-                <div className="text-xs text-ink-black/60">LOSSES</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        {/* Card Footer */}
-        <div className="border-t-2 border-ink-black/20 pt-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <div className="text-xs text-ink-black/40">POINTS</div>
-              <div className="font-bebas text-xl text-burnt-orange">
-                {userProfile?.all_time || 0} TOTAL
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-xs text-ink-black/40">SPENDABLE</div>
-              <div className="font-bebas text-xl text-forest-green">
-                {userProfile?.spendable || 0} PTS
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
+  const handleEquipItem = async (item) => {
+    const newConfig = { ...avatarConfig, [item.category]: item.id }
+    setAvatarConfig(newConfig)
+    await saveAvatarConfig(newConfig)
   }
 
-  // Collection Component
-  const CollectionPanel = () => {
-    const categoryCounts = {
-      head: inventory.filter(item => item.category === 'head').length,
-      body: inventory.filter(item => item.category === 'body').length,
-      shoes: inventory.filter(item => item.category === 'shoes').length,
-      background: inventory.filter(item => item.category === 'background').length,
+  const handleUnequipItem = async (category) => {
+    const newConfig = { ...avatarConfig }
+    delete newConfig[category]
+    setAvatarConfig(newConfig)
+    await saveAvatarConfig(newConfig)
+  }
+
+  const saveAvatarConfig = async (config) => {
+    try {
+      setSaving(true)
+      const token = session?.access_token
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/profile/avatar`,
+        { avatar_config: config },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      )
+    } catch (err) {
+      console.error('Failed to save avatar:', err)
+      alert('Failed to save avatar configuration')
+    } finally {
+      setSaving(false)
     }
-    
-    return (
-      <div className="card-vintage">
-        <div className="font-bebas text-2xl tracking-wider mb-4">YOUR COLLECTION</div>
-        
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          {Object.entries(categoryCounts).map(([category, count]) => (
-            <div key={category} className="text-center p-4 border-2 border-ink-black/20">
-              <div className="text-3xl font-bebas text-burnt-orange">{count}</div>
-              <div className="text-xs text-ink-black/60 mt-1 uppercase">
-                {category === 'head' && 'HEAD GEAR'}
-                {category === 'body' && 'JERSEYS'}
-                {category === 'shoes' && 'SNEAKERS'}
-                {category === 'background' && 'BACKGROUNDS'}
-              </div>
-            </div>
-          ))}
-        </div>
-        
-        <div className="text-sm text-ink-black/60 font-roboto-slab">
-          Browse your collected items in the Locker Room
-        </div>
-      </div>
-    )
+  }
+
+  const getEquippedItem = (category) => {
+    const itemId = avatarConfig[category]
+    return inventory.find(item => item.id === itemId)
+  }
+
+  const getItemsByCategory = (category) => {
+    return inventory.filter(item => item.category === category)
+  }
+
+  const getAssetUrl = (category, assetRef) => {
+    return `/assets/items/${category}/${assetRef}`
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-vintage-cream flex items-center justify-center">
-        <div className="text-center">
-          <div className="scoreboard-panel inline-block px-8 py-6">
-            <div className="font-bebas text-2xl animate-pulse">LOADING PROFILE...</div>
-          </div>
-        </div>
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-2xl">Loading profile...</div>
       </div>
     )
   }
 
+  const equippedBackground = getEquippedItem('background')
+  const equippedHead = getEquippedItem('head')
+  const equippedBody = getEquippedItem('body')
+  const equippedShoes = getEquippedItem('shoes')
+
   return (
-    <div className="min-h-screen bg-vintage-cream">
-      <Navigation />
-      
-      <main className="max-w-7xl mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gray-100 p-4">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="scoreboard-text text-ink-black mb-2">MY PLAYER</h1>
-              <div className="font-roboto-slab text-lg text-ink-black/60">
-                TRADING CARD PROFILE • SEASON STATS • COLLECTION
-              </div>
-            </div>
-            
-            {/* Username Editor */}
-            <div className="flex items-center gap-3">
-              {editingUsername ? (
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={newUsername}
-                    onChange={(e) => setNewUsername(e.target.value)}
-                    className="border-2 border-ink-black px-3 py-2 font-bebas text-lg bg-vintage-cream"
-                    placeholder="Enter username"
-                    maxLength={20}
-                  />
-                  <button
-                    onClick={handleUsernameUpdate}
-                    disabled={saving}
-                    className="btn-vintage px-4 py-2 text-sm"
-                  >
-                    {saving ? 'SAVING...' : 'SAVE'}
-                  </button>
-                  <button
-                    onClick={() => {
-                      setEditingUsername(false)
-                      setNewUsername(username)
-                      setUsernameError('')
-                    }}
-                    className="btn-vintage-outline px-4 py-2 text-sm"
-                  >
-                    CANCEL
-                  </button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-3">
-                  <div className="scoreboard-panel text-center px-4 py-2">
-                    <div className="font-bebas text-xl">{username}</div>
+        <div className="bg-white rounded-lg shadow p-4 md:p-6 mb-4">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+            <div className="flex-1">
+              <h1 className="text-2xl md:text-3xl font-bold text-orange-600">👤 My Player</h1>
+              
+              {/* Username Display/Edit */}
+              <div className="mt-2 flex items-center gap-2">
+                {editingUsername ? (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <input
+                      type="text"
+                      value={newUsername}
+                      onChange={(e) => setNewUsername(e.target.value)}
+                      className="px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm md:text-base"
+                      maxLength={20}
+                      autoFocus
+                    />
+                    <button
+                      onClick={handleUsernameUpdate}
+                      disabled={saving}
+                      className="bg-green-500 text-white px-3 py-1 rounded-lg hover:bg-green-600 text-sm"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingUsername(false)
+                        setNewUsername(username)
+                        setUsernameError('')
+                      }}
+                      className="bg-gray-500 text-white px-3 py-1 rounded-lg hover:bg-gray-600 text-sm"
+                    >
+                      Cancel
+                    </button>
                   </div>
-                  <button
-                    onClick={() => setEditingUsername(true)}
-                    className="btn-vintage-outline px-4 py-2 text-sm"
-                  >
-                    EDIT NAME
-                  </button>
-                </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg md:text-xl font-semibold text-gray-700">{username}</span>
+                    <button
+                      onClick={() => setEditingUsername(true)}
+                      className="text-orange-500 hover:text-orange-600 text-sm"
+                    >
+                      ✏️ Edit
+                    </button>
+                  </div>
+                )}
+              </div>
+              {usernameError && (
+                <p className="text-red-500 text-sm mt-1">{usernameError}</p>
               )}
             </div>
+            <div className="relative">
+              <Navigation currentPage="Profile" />
+            </div>
           </div>
-          
-          {usernameError && (
-            <div className="mb-4 p-3 border-2 border-scoreboard-red bg-scoreboard-red/10">
-              <div className="text-scoreboard-red text-sm">{usernameError}</div>
-            </div>
-          )}
         </div>
-        
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column: Trading Card */}
-          <div className="lg:col-span-2">
-            <TradingCardProfile />
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Left: Avatar Display */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-2xl font-bold mb-4">Your Avatar</h2>
             
-            {/* Tabs */}
-            <div className="flex border-b-2 border-ink-black/30 mt-8 mb-6">
-              <button
-                onClick={() => setActiveTab('stats')}
-                className={`px-6 py-3 font-bebas text-lg uppercase tracking-wider border-b-2 transition-all duration-200 ${
-                  activeTab === 'stats' 
-                    ? 'border-burnt-orange text-ink-black' 
-                    : 'border-transparent text-ink-black/60 hover:text-ink-black'
-                }`}
-              >
-                SEASON STATS
-              </button>
-              <button
-                onClick={() => setActiveTab('collection')}
-                className={`px-6 py-3 font-bebas text-lg uppercase tracking-wider border-b-2 transition-all duration-200 ${
-                  activeTab === 'collection' 
-                    ? 'border-burnt-orange text-ink-black' 
-                    : 'border-transparent text-ink-black/60 hover:text-ink-black'
-                }`}
-              >
-                COLLECTION
-              </button>
-              <button
-                onClick={() => setActiveTab('achievements')}
-                className={`px-6 py-3 font-bebas text-lg uppercase tracking-wider border-b-2 transition-all duration-200 ${
-                  activeTab === 'achievements' 
-                    ? 'border-burnt-orange text-ink-black' 
-                    : 'border-transparent text-ink-black/60 hover:text-ink-black'
-                }`}
-              >
-                ACHIEVEMENTS
-              </button>
+            {/* Avatar Container */}
+            <div className="relative w-full aspect-square max-w-md mx-auto rounded-lg overflow-hidden border-4 border-orange-500">
+              {/* Background Layer */}
+              <img
+                src={equippedBackground ? getAssetUrl('background', equippedBackground.asset_ref) : '/assets/backgrounds/default-bg.png'}
+                alt="Background"
+                className="absolute inset-0 w-full h-full object-cover"
+                style={{ zIndex: 1 }}
+              />
+              
+              {/* Avatar Base Layer */}
+              <img
+                src="/assets/avatar/default-avatar.png"
+                alt="Avatar"
+                className="absolute inset-0 w-full h-full object-contain"
+                style={{ zIndex: 2 }}
+              />
+              
+              {/* Items Layer */}
+              {equippedBody && (
+                <img
+                  src={getAssetUrl('body', equippedBody.asset_ref)}
+                  alt={equippedBody.name}
+                  className="absolute inset-0 w-full h-full object-contain"
+                  style={{ zIndex: 3 }}
+                />
+              )}
+              {equippedHead && (
+                <img
+                  src={getAssetUrl('head', equippedHead.asset_ref)}
+                  alt={equippedHead.name}
+                  className="absolute inset-0 w-full h-full object-contain"
+                  style={{ zIndex: 4 }}
+                />
+              )}
+              {equippedShoes && (
+                <img
+                  src={getAssetUrl('shoes', equippedShoes.asset_ref)}
+                  alt={equippedShoes.name}
+                  className="absolute inset-0 w-full h-full object-contain"
+                  style={{ zIndex: 3 }}
+                />
+              )}
             </div>
-            
-            {/* Tab Content */}
-            <div className="card-vintage">
-              {activeTab === 'stats' && (
-                <div>
-                  <div className="font-bebas text-xl tracking-wider mb-4">DETAILED STATISTICS</div>
-                  
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center py-3 border-b border-ink-black/10">
-                      <div className="text-ink-black/60">Total Predictions</div>
-                      <div className="font-bebas text-lg">{stats?.total_predictions || 0}</div>
-                    </div>
-                    
-                    <div className="flex justify-between items-center py-3 border-b border-ink-black/10">
-                      <div className="text-ink-black/60">Correct Picks</div>
-                      <div className="font-bebas text-lg text-forest-green">{stats?.correct_predictions || 0}</div>
-                    </div>
-                    
-                    <div className="flex justify-between items-center py-3 border-b border-ink-black/10">
-                      <div className="text-ink-black/60">Incorrect Picks</div>
-                      <div className="font-bebas text-lg text-scoreboard-red">{stats?.incorrect_predictions || 0}</div>
-                    </div>
-                    
-                    <div className="flex justify-between items-center py-3 border-b border-ink-black/10">
-                      <div className="text-ink-black/60">Win Rate</div>
-                      <div className="font-bebas text-lg">
-                        {stats?.correct_predictions && stats?.total_predictions 
-                          ? Math.round((stats.correct_predictions / stats.total_predictions) * 100)
-                          : 0}%
+
+            {/* Stats */}
+            <div className="mt-6 space-y-4">
+              {/* Points */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-50 rounded-lg p-4 text-center">
+                  <div className="text-sm text-gray-500">Balance</div>
+                  <div className="text-2xl font-bold text-green-600">
+                    {stats?.spendable_points || 0} pts
+                  </div>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-4 text-center">
+                  <div className="text-sm text-gray-500">All-Time</div>
+                  <div className="text-2xl font-bold text-orange-600">
+                    {stats?.all_time_points || 0} pts
+                  </div>
+                </div>
+              </div>
+
+              {/* Prediction Stats */}
+              {stats && (
+                <div className="bg-gradient-to-r from-orange-50 to-purple-50 rounded-lg p-4">
+                  <h3 className="font-bold text-gray-700 mb-3">📊 Prediction Stats</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-white rounded-lg p-3 text-center">
+                      <div className="text-xs text-gray-500">Total Predictions</div>
+                      <div className="text-xl font-bold text-gray-800">
+                        {stats.total_predictions}
                       </div>
                     </div>
-                    
-                    <div className="flex justify-between items-center py-3">
-                      <div className="text-ink-black/60">Longest Streak</div>
-                      <div className="font-bebas text-lg">{stats?.longest_streak || 0}</div>
+                    <div className="bg-white rounded-lg p-3 text-center">
+                      <div className="text-xs text-gray-500">Win Rate</div>
+                      <div className="text-xl font-bold text-blue-600">
+                        {stats.win_rate}%
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-lg p-3 text-center">
+                      <div className="text-xs text-gray-500">Wins</div>
+                      <div className="text-xl font-bold text-green-600">
+                        {stats.wins}
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-lg p-3 text-center">
+                      <div className="text-xs text-gray-500">Losses</div>
+                      <div className="text-xl font-bold text-red-600">
+                        {stats.losses}
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-              
-              {activeTab === 'collection' && (
-                <CollectionPanel />
-              )}
-              
-              {activeTab === 'achievements' && (
-                <div>
-                  <div className="font-bebas text-xl tracking-wider mb-4">ACHIEVEMENTS</div>
-                  <div className="text-center py-8">
-                    <div className="text-4xl mb-4">🏆</div>
-                    <div className="text-ink-black/60 font-roboto-slab">
-                      Achievements coming soon!
+                  
+                  {/* Current Streak */}
+                  {stats.current_streak > 0 && (
+                    <div className="mt-3 bg-white rounded-lg p-3 text-center">
+                      <div className="text-xs text-gray-500">Current Streak</div>
+                      <div className={`text-xl font-bold ${
+                        stats.streak_type === 'win' ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {stats.current_streak} {stats.streak_type === 'win' ? '🔥' : '❄️'}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {stats.streak_type === 'win' ? 'winning' : 'losing'} streak
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
             </div>
+
+            {saving && (
+              <div className="mt-4 text-center text-sm text-gray-500">
+                Saving...
+              </div>
+            )}
           </div>
-          
-          {/* Right Column: Actions & Info */}
-          <div>
-            {/* Quick Actions */}
-            <div className="card-vintage mb-6">
-              <div className="font-bebas text-xl tracking-wider mb-4">QUICK ACTIONS</div>
-              
-              <div className="space-y-3">
+
+          {/* Right: Inventory & Editor */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-2xl font-bold mb-4">Your Locker</h2>
+            
+            {inventory.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-500 mb-4">Your locker is empty!</p>
                 <button
                   onClick={() => navigate('/shop')}
-                  className="btn-vintage-secondary w-full"
+                  className="bg-purple-500 text-white px-6 py-2 rounded-lg hover:bg-purple-600"
                 >
-                  VISIT LOCKER ROOM
-                </button>
-                
-                <button
-                  onClick={() => navigate('/leaderboard')}
-                  className="btn-vintage-outline w-full"
-                >
-                  VIEW LEADERBOARD
-                </button>
-                
-                <button
-                  onClick={() => navigate('/court')}
-                  className="btn-vintage-outline w-full"
-                >
-                  BACK TO COURT
+                  Visit Shop
                 </button>
               </div>
-            </div>
-            
-            {/* Account Info */}
-            <div className="card-vintage mb-6">
-              <div className="font-bebas text-xl tracking-wider mb-4">ACCOUNT INFO</div>
-              
-              <div className="space-y-3">
-                <div>
-                  <div className="text-xs text-ink-black/40 mb-1">EMAIL</div>
-                  <div className="font-roboto-slab text-sm truncate">{user?.email}</div>
-                </div>
-                
-                <div>
-                  <div className="text-xs text-ink-black/40 mb-1">MEMBER SINCE</div>
-                  <div className="font-roboto-slab text-sm">
-                    {stats?.join_date ? new Date(stats.join_date).toLocaleDateString() : 'N/A'}
+            ) : (
+              <div className="space-y-6">
+                {/* Head Items */}
+                {getItemsByCategory('head').length > 0 && (
+                  <div>
+                    <h3 className="font-bold mb-2">🎩 Head</h3>
+                    <div className="grid grid-cols-3 gap-2">
+                      {getItemsByCategory('head').map(item => (
+                        <button
+                          key={item.id}
+                          onClick={() => 
+                            avatarConfig.head === item.id 
+                              ? handleUnequipItem('head')
+                              : handleEquipItem(item)
+                          }
+                          className={`p-2 rounded-lg border-2 transition-all ${
+                            avatarConfig.head === item.id
+                              ? 'border-orange-500 bg-orange-50'
+                              : 'border-gray-200 hover:border-orange-300'
+                          }`}
+                        >
+                          <div className="aspect-square bg-gray-100 rounded flex items-center justify-center text-2xl">
+                            🎩
+                          </div>
+                          <div className="text-xs mt-1 truncate">{item.name}</div>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-                
-                <div>
-                  <div className="text-xs text-ink-black/40 mb-1">PLAYER ID</div>
-                  <div className="font-roboto-slab text-sm font-mono truncate">
-                    {user?.id?.slice(0, 8)}...
+                )}
+
+                {/* Body Items */}
+                {getItemsByCategory('body').length > 0 && (
+                  <div>
+                    <h3 className="font-bold mb-2">👕 Body</h3>
+                    <div className="grid grid-cols-3 gap-2">
+                      {getItemsByCategory('body').map(item => (
+                        <button
+                          key={item.id}
+                          onClick={() => 
+                            avatarConfig.body === item.id 
+                              ? handleUnequipItem('body')
+                              : handleEquipItem(item)
+                          }
+                          className={`p-2 rounded-lg border-2 transition-all ${
+                            avatarConfig.body === item.id
+                              ? 'border-orange-500 bg-orange-50'
+                              : 'border-gray-200 hover:border-orange-300'
+                          }`}
+                        >
+                          <div className="aspect-square bg-gray-100 rounded flex items-center justify-center text-2xl">
+                            👕
+                          </div>
+                          <div className="text-xs mt-1 truncate">{item.name}</div>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {/* Shoes */}
+                {getItemsByCategory('shoes').length > 0 && (
+                  <div>
+                    <h3 className="font-bold mb-2">👟 Shoes</h3>
+                    <div className="grid grid-cols-3 gap-2">
+                      {getItemsByCategory('shoes').map(item => (
+                        <button
+                          key={item.id}
+                          onClick={() => 
+                            avatarConfig.shoes === item.id 
+                              ? handleUnequipItem('shoes')
+                              : handleEquipItem(item)
+                          }
+                          className={`p-2 rounded-lg border-2 transition-all ${
+                            avatarConfig.shoes === item.id
+                              ? 'border-orange-500 bg-orange-50'
+                              : 'border-gray-200 hover:border-orange-300'
+                          }`}
+                        >
+                          <div className="aspect-square bg-gray-100 rounded flex items-center justify-center text-2xl">
+                            👟
+                          </div>
+                          <div className="text-xs mt-1 truncate">{item.name}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Backgrounds */}
+                {getItemsByCategory('background').length > 0 && (
+                  <div>
+                    <h3 className="font-bold mb-2">🖼️ Background</h3>
+                    <div className="grid grid-cols-3 gap-2">
+                      {getItemsByCategory('background').map(item => (
+                        <button
+                          key={item.id}
+                          onClick={() => 
+                            avatarConfig.background === item.id 
+                              ? handleUnequipItem('background')
+                              : handleEquipItem(item)
+                          }
+                          className={`p-2 rounded-lg border-2 transition-all ${
+                            avatarConfig.background === item.id
+                              ? 'border-orange-500 bg-orange-50'
+                              : 'border-gray-200 hover:border-orange-300'
+                          }`}
+                        >
+                          <div className="aspect-square bg-gray-100 rounded flex items-center justify-center text-2xl">
+                            🖼️
+                          </div>
+                          <div className="text-xs mt-1 truncate">{item.name}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-            
-            {/* Sign Out */}
-            <div className="card-vintage bg-scoreboard-red/5 border-scoreboard-red/30">
-              <div className="font-bebas text-xl tracking-wider mb-4">SESSION</div>
-              
-              <button
-                onClick={signOut}
-                className="btn-vintage w-full bg-scoreboard-red hover:bg-scoreboard-red/90"
-              >
-                SIGN OUT
-              </button>
-              
-              <div className="text-xs text-ink-black/40 mt-3 font-roboto-slab">
-                Sessions automatically expire after 24 hours
-              </div>
-            </div>
+            )}
           </div>
         </div>
-      </main>
-      
-      {/* Vintage Footer */}
-      <footer className="mt-12 py-6 border-t-2 border-ink-black/20 bg-vintage-navy/5">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <div className="font-bebas text-lg tracking-wider mb-2">
-            BASKETDUBS PLAYER PROFILE
-          </div>
-          <div className="text-sm text-ink-black/60 font-roboto-slab">
-            Build your legacy, track your stats, customize your player
-          </div>
-        </div>
-      </footer>
+      </div>
     </div>
   )
 }

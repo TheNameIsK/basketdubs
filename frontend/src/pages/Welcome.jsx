@@ -1,6 +1,7 @@
+
 /**
  * Welcome Page - First-time user setup
- * VINTAGE REDESIGN: Rookie Registration Style
+ * Allows users to set their username
  */
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -47,12 +48,13 @@ export default function Welcome() {
     try {
       setLoading(true)
       const token = session?.access_token
-      console.log('Submitting username:', usernameToSubmit, 'with token:', token ? 'present' : 'missing')
-      
-      if (!token) {
-        throw new Error('No authentication token')
-      }
 
+      // Set the session flag BEFORE making the API call
+      // This prevents the race condition where navigation happens before flag is set
+      const sessionKey = `first_login_checked_${user.id}`
+      sessionStorage.setItem(sessionKey, 'true')
+
+      console.log('Sending username update request...')
       const response = await axios.put(
         `${import.meta.env.VITE_API_URL}/api/profile/username`,
         { username: usernameToSubmit },
@@ -60,173 +62,74 @@ export default function Welcome() {
           headers: { Authorization: `Bearer ${token}` }
         }
       )
+      console.log('Username update successful:', response.data)
 
-      console.log('Username update response:', response.data)
+      // Small delay to ensure backend has processed the update
+      await new Promise(resolve => setTimeout(resolve, 100))
 
-      // Clear the session storage flag
-      if (user?.id) {
-        const sessionKey = `first_login_checked_${user.id}`
-        sessionStorage.setItem(sessionKey, 'true')
-        console.log(`Set sessionStorage ${sessionKey} = true`)
-      }
-
-      // Navigate to court
-      console.log('✅ Username set successfully, navigating to /court')
+      // Success! Redirect to court
+      console.log('Navigating to /court')
       navigate('/court', { replace: true })
-
     } catch (err) {
-      console.error('Failed to set username:', err)
-      setError(err.response?.data?.error || 'Failed to set username. Please try again.')
-    } finally {
+      console.error('Username update failed:', err)
+      // If API call fails, remove the session flag so user can try again
+      const sessionKey = `first_login_checked_${user.id}`
+      sessionStorage.removeItem(sessionKey)
+      setError(err.response?.data?.error || 'Failed to set username')
       setLoading(false)
     }
   }
 
-  // Generate a suggested username based on email
-  const getSuggestedUsername = () => {
-    if (!user?.email) return 'RookiePlayer'
-    const emailPart = user.email.split('@')[0]
-    const cleaned = emailPart.replace(/[^a-zA-Z0-9]/g, '')
-    return cleaned.charAt(0).toUpperCase() + cleaned.slice(1).toLowerCase() || 'RookiePlayer'
-  }
-
-  // Auto-fill suggested username on component mount
-  useState(() => {
-    if (!username) {
-      setUsername(getSuggestedUsername())
-    }
-  })
-
   return (
-    <div className="min-h-screen bg-vintage-cream flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Vintage Court Background */}
-      <div className="absolute inset-0 pointer-events-none opacity-5">
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 border-2 border-ink-black rounded-full"></div>
-        <div className="absolute top-1/2 left-1/4 transform -translate-y-1/2 w-32 h-32 border border-ink-black"></div>
-        <div className="absolute top-1/2 right-1/4 transform -translate-y-1/2 w-32 h-32 border border-ink-black"></div>
-      </div>
-      
-      {/* Main Content */}
-      <div className="relative w-full max-w-md">
-        {/* Vintage Header */}
-        <div className="scoreboard-panel text-center mb-8">
-          <div className="font-bebas text-4xl tracking-widest">ROOKIE REGISTRATION</div>
-          <div className="text-sm text-vintage-cream/80 mt-2">WELCOME TO BASKETDUBS</div>
+    <div className="min-h-screen bg-gradient-to-br from-orange-500 to-purple-600 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+        <div className="text-center mb-8">
+          <div className="text-6xl mb-4">🏀</div>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            Welcome to Basketdubs!
+          </h1>
+          <p className="text-gray-600">
+            Let's get you set up with a username
+          </p>
         </div>
-        
-        {/* Registration Card */}
-        <div className="card-vintage relative z-10">
-          {/* Header */}
-          <div className="border-b-2 border-ink-black pb-4 mb-6">
-            <div className="font-bebas text-xl tracking-wider">CHOOSE YOUR PLAYER NAME</div>
-            <div className="text-sm text-ink-black/60 font-roboto-slab mt-1">
-              This will be your identity in the league
-            </div>
-          </div>
-          
-          {/* Welcome Message */}
-          <div className="mb-8 text-center">
-            <div className="text-5xl mb-4">🎯</div>
-            <h2 className="font-bebas text-2xl mb-3">WELCOME, ROOKIE!</h2>
-            <p className="text-ink-black/70 font-roboto-slab">
-              You're about to enter the Basketdubs league. Choose a player name
-              that will appear on the leaderboard and in-game.
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Choose Your Username
+            </label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Enter username..."
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              maxLength={20}
+              autoFocus
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              3-20 characters, visible to other players
             </p>
           </div>
-          
-          {/* Form */}
-          <form onSubmit={handleSubmit}>
-            <div className="mb-6">
-              <label className="block text-sm text-ink-black/60 font-roboto-slab mb-2">
-                PLAYER NAME
-              </label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-3 border-2 border-ink-black bg-vintage-cream
-                         font-bebas text-lg tracking-wider
-                         focus:outline-none focus:border-burnt-orange"
-                placeholder="Enter your player name"
-                maxLength={20}
-                disabled={loading}
-              />
-              <div className="text-xs text-ink-black/40 mt-2 font-roboto-slab">
-                3-20 characters • Letters, numbers, and underscores only
-              </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+              {error}
             </div>
-            
-            {/* Error Message */}
-            {error && (
-              <div className="mb-6 p-3 border-2 border-scoreboard-red bg-scoreboard-red/10">
-                <div className="text-scoreboard-red text-sm font-roboto-slab">{error}</div>
-              </div>
-            )}
-            
-            {/* Action Buttons */}
-            <div className="space-y-3">
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn-vintage w-full py-4 text-lg"
-              >
-                {loading ? 'ENTERING LEAGUE...' : 'ENTER THE COURT'}
-              </button>
-              
-              <button
-                type="button"
-                onClick={() => setUsername(getSuggestedUsername())}
-                disabled={loading}
-                className="btn-vintage-outline w-full py-3 text-sm"
-              >
-                USE SUGGESTED NAME
-              </button>
-            </div>
-          </form>
-          
-          {/* Tips */}
-          <div className="mt-8 pt-6 border-t border-ink-black/20">
-            <div className="text-xs text-ink-black/40 font-roboto-slab uppercase tracking-wider mb-2">
-              TIPS FOR ROOKIES
-            </div>
-            <ul className="text-sm text-ink-black/60 space-y-1">
-              <li className="flex items-start gap-2">
-                <span className="text-burnt-orange">•</span>
-                <span>Correct predictions earn +2 points</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-burnt-orange">•</span>
-                <span>Wrong predictions lose -1 point</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-burnt-orange">•</span>
-                <span>Spend points on gear in the Locker Room</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-burnt-orange">•</span>
-                <span>Compete for the top spot on the leaderboard</span>
-              </li>
-            </ul>
-          </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading || username.length < 3}
+            className="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+          >
+            {loading ? 'Setting up...' : 'Continue to Court'}
+          </button>
+        </form>
+
+        <div className="mt-6 text-center text-sm text-gray-500">
+          You can change your username later in your profile
         </div>
-        
-        {/* Vintage Footer */}
-        <div className="text-center mt-8">
-          <div className="text-sm text-ink-black/60 font-roboto-slab mb-2">
-            YOUR JOURNEY STARTS HERE
-          </div>
-          <div className="text-xs text-ink-black/40">
-            You can change your player name anytime from your profile
-          </div>
-        </div>
-      </div>
-      
-      {/* Decorative Elements */}
-      <div className="absolute bottom-4 left-4 opacity-10">
-        <div className="font-bebas text-4xl">🏀</div>
-      </div>
-      <div className="absolute top-4 right-4 opacity-10">
-        <div className="font-bebas text-4xl">👤</div>
       </div>
     </div>
   )

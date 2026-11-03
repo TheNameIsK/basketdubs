@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 
-export default function Navigation() {
+export default function Navigation({ currentPage }) {
   const navigate = useNavigate()
-  const location = useLocation()
-  const { signOut, user } = useAuth()
+  const { signOut } = useAuth()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const menuRef = useRef(null)
 
@@ -27,168 +26,97 @@ export default function Navigation() {
   }, [isMenuOpen])
 
   const navItems = [
-    { name: 'HOME', path: '/court', icon: 'H' },
-    { name: 'COURT', path: '/court', icon: 'C' },
-    { name: 'PICKS', path: '/court', icon: 'P' }, // Will link to predictions section
-    { name: 'LEAGUE', path: '/leaderboard', icon: 'L' },
-    { name: 'PROFILE', path: '/profile', icon: 'P' },
+    { name: 'Court', path: '/court', icon: '🏀', color: 'orange' },
+    { name: 'Leaderboard', path: '/leaderboard', icon: '🏆', color: 'yellow' },
+    { name: 'Shop', path: '/shop', icon: '🛍️', color: 'purple' },
+    { name: 'Profile', path: '/profile', icon: '👤', color: 'blue' },
   ]
+
+  const colorClasses = {
+    orange: 'bg-orange-500 hover:bg-orange-600',
+    yellow: 'bg-yellow-500 hover:bg-yellow-600',
+    purple: 'bg-purple-500 hover:bg-purple-600',
+    blue: 'bg-blue-500 hover:bg-blue-600',
+  }
 
   const handleNavigation = (path) => {
     navigate(path)
     setIsMenuOpen(false)
   }
 
-  const isActive = (path) => {
-    return location.pathname === path
-  }
-
-  // Vintage hamburger icon
-  const HamburgerIcon = ({ isOpen }) => (
-    <div className="relative w-6 h-5">
-      <span className={`absolute left-0 w-6 h-0.5 bg-ink-black transition-all duration-200 ${isOpen ? 'rotate-45 top-2' : 'top-0'}`} />
-      <span className={`absolute left-0 top-2 w-6 h-0.5 bg-ink-black transition-all duration-200 ${isOpen ? 'opacity-0' : 'opacity-100'}`} />
-      <span className={`absolute left-0 w-6 h-0.5 bg-ink-black transition-all duration-200 ${isOpen ? '-rotate-45 top-2' : 'top-4'}`} />
-    </div>
-  )
-
   return (
     <>
       {/* Desktop Navigation */}
-      <div className="hidden md:block">
-        <div className="flex items-center justify-between bg-vintage-cream border-b-3 border-ink-black px-6 py-3">
-          {/* Logo / Masthead */}
-          <div className="flex items-center gap-3">
-            <div className="scoreboard-panel px-4 py-2">
-              <span className="text-2xl tracking-widest">BASKETDUBS</span>
-              <div className="text-xs text-vintage-cream/80 mt-1">EST. 2026</div>
-            </div>
-            <div className="text-sm text-ink-black/60 font-roboto-slab italic">
-              THE HOME OF YOUR NBA PREDICTIONS
-            </div>
-          </div>
-
-          {/* Navigation Items */}
-          <div className="flex items-center gap-1">
-            {navItems.map(item => (
-              <button
-                key={item.name}
-                onClick={() => handleNavigation(item.path)}
-                className={`
-                  relative px-4 py-2 font-bebas uppercase tracking-wider text-lg
-                  border-2 border-transparent transition-all duration-200
-                  hover:border-ink-black hover:shadow-hard-sm
-                  ${isActive(item.path) 
-                    ? 'bg-burnt-orange text-vintage-cream border-ink-black shadow-hard-sm' 
-                    : 'text-ink-black hover:bg-forest-green/10'
-                  }
-                `}
-              >
-                <span className="relative z-10">{item.name}</span>
-                {isActive(item.path) && (
-                  <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-0.5 bg-ink-black" />
-                )}
-              </button>
-            ))}
-            
-            {/* LeBot Button */}
+      <div className="hidden md:flex items-center gap-2 lg:gap-4">
+        {navItems
+          .filter(item => item.name !== currentPage)
+          .map(item => (
             <button
-              onClick={() => navigate('/court')} // Will open LeBot modal
-              className="ml-4 px-4 py-2 font-bebas uppercase tracking-wider text-lg
-                         bg-forest-green text-vintage-cream border-2 border-ink-black
-                         shadow-hard-sm hover:shadow-hard transition-all duration-200"
+              key={item.name}
+              onClick={() => handleNavigation(item.path)}
+              className={`${colorClasses[item.color]} text-white px-3 lg:px-4 py-2 rounded-lg transition-colors text-sm lg:text-base whitespace-nowrap`}
             >
-              LEBOT
+              <span className="hidden lg:inline">{item.icon} </span>
+              {item.name}
             </button>
-            
-            {/* Logout Button */}
-            <button
-              onClick={signOut}
-              className="ml-2 px-4 py-2 font-bebas uppercase tracking-wider text-lg
-                         bg-scoreboard-red text-vintage-cream border-2 border-ink-black
-                         shadow-hard-sm hover:shadow-hard transition-all duration-200"
-            >
-              EXIT
-            </button>
-          </div>
-        </div>
+          ))}
+        <button
+          onClick={signOut}
+          className="bg-red-500 text-white px-3 lg:px-4 py-2 rounded-lg hover:bg-red-600 transition-colors text-sm lg:text-base"
+        >
+          Logout
+        </button>
       </div>
 
-      {/* Mobile Navigation */}
+      {/* Mobile Hamburger Button */}
       <div className="md:hidden" ref={menuRef}>
-        <div className="flex items-center justify-between bg-vintage-cream border-b-3 border-ink-black px-4 py-3">
-          {/* Mobile Logo */}
-          <div className="scoreboard-panel px-3 py-1">
-            <span className="text-xl tracking-widest">BD</span>
-          </div>
-          
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="p-2 border-2 border-ink-black bg-vintage-cream shadow-hard-sm"
-            aria-label="Toggle menu"
+        <button
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          aria-label="Toggle menu"
+        >
+          <svg
+            className="w-6 h-6 text-gray-700"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
           >
-            <HamburgerIcon isOpen={isMenuOpen} />
-          </button>
-        </div>
+            {isMenuOpen ? (
+              <path d="M6 18L18 6M6 6l12 12" />
+            ) : (
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            )}
+          </svg>
+        </button>
 
         {/* Mobile Menu Dropdown */}
         {isMenuOpen && (
-          <div className="absolute top-full left-0 right-0 bg-vintage-cream border-b-3 border-ink-black shadow-hard-lg z-50">
-            <div className="px-4 py-3 border-b border-ink-black/20">
-              <div className="font-roboto-slab text-sm text-ink-black/60 mb-2">
-                NAVIGATION
-              </div>
-              {navItems.map(item => (
-                <button
-                  key={item.name}
-                  onClick={() => handleNavigation(item.path)}
-                  className={`
-                    w-full text-left px-4 py-3 font-bebas uppercase tracking-wider text-lg
-                    border-l-2 transition-all duration-200
-                    ${isActive(item.path) 
-                      ? 'border-l-ink-black bg-burnt-orange/20 text-ink-black' 
-                      : 'border-l-transparent hover:border-l-forest-green hover:bg-forest-green/5'
-                    }
-                  `}
-                >
-                  {item.name}
-                </button>
-              ))}
-            </div>
-            
-            <div className="px-4 py-3">
+          <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+          {navItems
+            .filter(item => item.name !== currentPage)
+            .map(item => (
               <button
-                onClick={() => {
-                  navigate('/court')
-                  setIsMenuOpen(false)
-                }}
-                className="w-full mb-2 btn-vintage-secondary"
+                key={item.name}
+                onClick={() => handleNavigation(item.path)}
+                className="w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors flex items-center gap-2"
               >
-                LEBOT
+                <span>{item.icon}</span>
+                <span>{item.name}</span>
               </button>
-              <button
-                onClick={() => {
-                  signOut()
-                  setIsMenuOpen(false)
-                }}
-                className="w-full btn-vintage"
-              >
-                EXIT
-              </button>
-            </div>
-            
-            {/* User info */}
-            {user && (
-              <div className="px-4 py-3 border-t border-ink-black/20 bg-vintage-navy/5">
-                <div className="text-xs text-ink-black/40 font-roboto-slab uppercase tracking-wider mb-1">
-                  PLAYER
-                </div>
-                <div className="font-bebas text-lg text-ink-black">
-                  {user.email?.split('@')[0] || 'PLAYER'}
-                </div>
-              </div>
-            )}
+            ))}
+          <hr className="my-2 border-gray-200" />
+            <button
+              onClick={() => {
+                signOut()
+                setIsMenuOpen(false)
+              }}
+              className="w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors text-red-600 font-medium"
+            >
+              Logout
+            </button>
           </div>
         )}
       </div>

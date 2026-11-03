@@ -4,9 +4,9 @@ python-dotenv
 supabase
 psycopg2-binary
 gunicorn
-google-generativeai
+google-genai
 balldontlie
 Flask-CORS
 google-auth
-google-auth-oauthlib
+google-auth-oauthlib>=1.2.4
 APScheduler

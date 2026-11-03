@@ -19,7 +19,6 @@ SYSTEM_PROMPT = """You are LeBot, the official AI assistant for Basketdubs - an 
 
 PERSONALITY:
 - You're enthusiastic about basketball and the NBA
-- You use basketball slang sometimes
 - You're helpful, friendly, and encouraging
 - You keep responses concise (2-3 sentences max unless asked for details)
 
@@ -48,8 +47,6 @@ TOPICS YOU MUST REFUSE:
 
 RESPONSE FORMAT:
 - Keep it short and engaging
-- Use basketball terminology
-- On rare occasions use basketball related emojis
 - If redirecting, suggest a basketball topic instead
 
 Easter Eggs:
@@ -109,7 +106,7 @@ def send_message():
         
         # Generate response using Gemini with context
         try:
-            model = genai.GenerativeModel('gemini-2.5-flash')
+            model = genai.GenerativeModel('gemini-3.8-flash')
             
             # Build conversation history for context
             conversation = f"{SYSTEM_PROMPT}\n\n"

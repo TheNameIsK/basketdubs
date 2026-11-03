@@ -16,7 +16,15 @@ import traceback
 chat_bp = Blueprint('chat', __name__)
 
 # Configure Gemini
-client = genai.Client(api_key=GEMINI_API_KEY)
+client = genai.Client(
+    api_key=GEMINI_API_KEY,
+    http_options=types.HttpOptions(
+        timeout=30000,
+        retry_options=types.HttpRetryOptions(
+            attempts=1
+        )
+    )
+)
 
 # System prompt with guardrails
 SYSTEM_PROMPT = """You are LeBot, the official AI assistant for Basketdubs - an NBA prediction game. You understand both English and Indonesian fluently.
@@ -137,12 +145,12 @@ def send_message():
         # Generate response using Gemini
         try:
             response = client.models.generate_content(
-                model="gemini-3.8-flash",
+                model="gemini-3.5-flash-lite",
                 contents=conversation,
                 config=types.GenerateContentConfig(
                     system_instruction=SYSTEM_PROMPT,
                     thinking_config=types.ThinkingConfig(
-                        thinking_level="low"
+                        thinking_level="minimal"
                     ),
                     max_output_tokens=256
                 )

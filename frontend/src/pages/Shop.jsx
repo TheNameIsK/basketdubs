@@ -1,5 +1,6 @@
 /**
  * The Locker Room - Shop Page
+ * VINTAGE REDESIGN: Trading Card Style Shop
  */
 import { useAuth } from '../contexts/AuthContext'
 import { useState, useEffect } from 'react'
@@ -15,6 +16,7 @@ export default function Shop() {
   const [userPoints, setUserPoints] = useState(0)
   const [loading, setLoading] = useState(true)
   const [purchasing, setPurchasing] = useState(null)
+  const [activeCategory, setActiveCategory] = useState('all')
 
   useEffect(() => {
     fetchShopItems()
@@ -98,104 +100,205 @@ export default function Shop() {
     return inventory.some(item => item.id === itemId)
   }
 
-  const categoryEmojis = {
-    head: '🎩',
-    body: '👕',
-    shoes: '👟',
-    background: '🖼️'
+  const categoryTitles = {
+    head: 'HEAD GEAR',
+    body: 'JERSEYS',
+    shoes: 'SNEAKERS',
+    background: 'COURT BACKGROUNDS'
+  }
+
+  const categoryColors = {
+    head: 'bg-burnt-orange',
+    body: 'bg-forest-green',
+    shoes: 'bg-vintage-navy',
+    background: 'bg-scoreboard-red'
+  }
+
+  // Vintage Item Card Component
+  const ItemCard = ({ item, category, owned, canAfford, isPurchasing }) => {
+    return (
+      <div className={`trading-card ${owned ? 'ring-2 ring-burnt-orange' : ''}`}>
+        {/* Item Header */}
+        <div className="flex items-center justify-between mb-4">
+          <div className={`${categoryColors[category]} text-vintage-cream px-3 py-1 font-bebas uppercase text-sm`}>
+            {category}
+          </div>
+          {owned && (
+            <div className="vintage-stamp text-xs bg-forest-green">OWNED</div>
+          )}
+        </div>
+        
+        {/* Item Preview */}
+        <div className="bg-vintage-cream/50 border-2 border-ink-black/30 h-48 flex items-center justify-center mb-4">
+          <div className="text-5xl opacity-60">
+            {category === 'head' && '🎩'}
+            {category === 'body' && '👕'}
+            {category === 'shoes' && '👟'}
+            {category === 'background' && '🖼️'}
+          </div>
+        </div>
+        
+        {/* Item Details */}
+        <div className="mb-4">
+          <div className="font-bebas text-xl mb-2">{item.name}</div>
+          <div className="text-sm text-ink-black/60 font-roboto-slab">
+            Vintage collectible item for your avatar
+          </div>
+        </div>
+        
+        {/* Price & Action */}
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-xs text-ink-black/40 font-roboto-slab">PRICE</div>
+            <div className="font-bebas text-2xl text-burnt-orange">{item.cost} PTS</div>
+          </div>
+          
+          {owned ? (
+            <div className="font-bebas text-sm text-forest-green">IN COLLECTION</div>
+          ) : (
+            <button
+              onClick={() => handlePurchase(item.id, item.cost)}
+              disabled={!canAfford || isPurchasing}
+              className={`btn-vintage px-4 py-2 text-sm ${!canAfford ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              {isPurchasing ? 'PURCHASING...' : 'ADD TO COLLECTION'}
+            </button>
+          )}
+        </div>
+      </div>
+    )
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-2xl">Loading shop...</div>
+      <div className="min-h-screen bg-vintage-cream flex items-center justify-center">
+        <div className="text-center">
+          <div className="scoreboard-panel inline-block px-8 py-6">
+            <div className="font-bebas text-2xl animate-pulse">LOADING LOCKER ROOM...</div>
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow p-4 md:p-6 mb-4">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-            <div className="flex-1">
-              <h1 className="text-2xl md:text-3xl font-bold text-orange-600">🛍️ The Locker Room</h1>
-              <p className="text-sm md:text-base text-gray-600 mt-1">Customize your player</p>
-            </div>
-            <div className="flex items-center justify-between md:justify-end gap-3 md:gap-4">
-              <div className="text-left md:text-right md:border-r md:pr-4">
-                <div className="text-xs md:text-sm text-gray-500">Your Balance</div>
-                <div className="text-xl md:text-2xl font-bold text-green-600">{userPoints} pts</div>
-              </div>
-              <div className="relative">
-                <Navigation currentPage="Shop" />
+    <div className="min-h-screen bg-vintage-cream">
+      <Navigation />
+      
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        {/* Hero Section */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="scoreboard-text text-ink-black mb-2">THE LOCKER ROOM</h1>
+              <div className="font-roboto-slab text-lg text-ink-black/60">
+                VINTAGE GEAR • COLLECTIBLE ITEMS • CUSTOMIZATION
               </div>
             </div>
+            <div className="scoreboard-panel text-center px-6 py-4">
+              <div className="text-sm text-vintage-cream/80 mb-1">YOUR BALANCE</div>
+              <div className="font-bebas text-3xl text-vintage-cream">{userPoints}</div>
+              <div className="text-xs text-vintage-cream/60 mt-1">POINTS AVAILABLE</div>
+            </div>
+          </div>
+          
+          {/* Category Filter */}
+          <div className="flex flex-wrap gap-2 mb-8">
+            <button
+              onClick={() => setActiveCategory('all')}
+              className={`px-4 py-2 font-bebas uppercase tracking-wider border-2 ${
+                activeCategory === 'all' 
+                  ? 'border-ink-black bg-burnt-orange text-vintage-cream' 
+                  : 'border-ink-black/30 text-ink-black hover:bg-ink-black/5'
+              }`}
+            >
+              ALL GEAR
+            </button>
+            {Object.keys(categoryTitles).map(cat => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`px-4 py-2 font-bebas uppercase tracking-wider border-2 ${
+                  activeCategory === cat 
+                    ? 'border-ink-black bg-burnt-orange text-vintage-cream' 
+                    : 'border-ink-black/30 text-ink-black hover:bg-ink-black/5'
+                }`}
+              >
+                {categoryTitles[cat]}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Shop Items by Category */}
+        {/* Shop Items Grid */}
         {Object.keys(items).length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-8 text-center">
-            <p className="text-gray-500">No items available yet</p>
+          <div className="card-vintage text-center py-12">
+            <div className="font-bebas text-2xl mb-2">NO GEAR AVAILABLE</div>
+            <div className="text-ink-black/60 font-roboto-slab">
+              Check back soon for vintage collectibles
+            </div>
           </div>
         ) : (
-          Object.entries(items).map(([category, categoryItems]) => (
-            <div key={category} className="mb-6">
-              <h2 className="text-2xl font-bold mb-4 capitalize">
-                {categoryEmojis[category] || '📦'} {category}
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {categoryItems.map((item) => {
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {Object.entries(items)
+              .filter(([category]) => activeCategory === 'all' || activeCategory === category)
+              .flatMap(([category, categoryItems]) => 
+                categoryItems.map((item) => {
                   const owned = isOwned(item.id)
                   const canAfford = userPoints >= item.cost
                   const isPurchasing = purchasing === item.id
 
                   return (
-                    <div
+                    <ItemCard
                       key={item.id}
-                      className={`bg-white rounded-lg shadow p-6 ${
-                        owned ? 'border-2 border-green-500' : ''
-                      }`}
-                    >
-                      {/* Item Preview */}
-                      <div className="bg-gray-100 rounded-lg h-32 flex items-center justify-center mb-4">
-                        <div className="text-4xl">{categoryEmojis[category] || '📦'}</div>
-                      </div>
-
-                      {/* Item Info */}
-                      <h3 className="font-bold text-lg mb-2">{item.name}</h3>
-                      <div className="flex justify-between items-center">
-                        <div className="text-2xl font-bold text-orange-600">
-                          {item.cost} pts
-                        </div>
-                        {owned ? (
-                          <div className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">
-                            ✓ Owned
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => handlePurchase(item.id, item.cost)}
-                            disabled={!canAfford || isPurchasing}
-                            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-                              canAfford
-                                ? 'bg-orange-500 text-white hover:bg-orange-600'
-                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            } ${isPurchasing ? 'opacity-50' : ''}`}
-                          >
-                            {isPurchasing ? 'Buying...' : 'Buy'}
-                          </button>
-                        )}
-                      </div>
-                    </div>
+                      item={item}
+                      category={category}
+                      owned={owned}
+                      canAfford={canAfford}
+                      isPurchasing={isPurchasing}
+                    />
                   )
-                })}
-              </div>
-            </div>
-          ))
+                })
+              )
+            }
+          </div>
         )}
-      </div>
+        
+        {/* Collection Stats */}
+        <div className="card-vintage mt-8">
+          <div className="font-bebas text-xl tracking-wider mb-4">YOUR COLLECTION</div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {Object.entries(items).map(([category, categoryItems]) => {
+              const ownedCount = categoryItems.filter(item => isOwned(item.id)).length
+              const totalCount = categoryItems.length
+              
+              return (
+                <div key={category} className="text-center p-4 border-2 border-ink-black/20">
+                  <div className="text-3xl font-bebas text-burnt-orange">
+                    {ownedCount}/{totalCount}
+                  </div>
+                  <div className="text-xs text-ink-black/60 mt-1 uppercase">
+                    {categoryTitles[category]}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </main>
+      
+      {/* Vintage Footer */}
+      <footer className="mt-12 py-6 border-t-2 border-ink-black/20 bg-vintage-navy/5">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <div className="font-bebas text-lg tracking-wider mb-2">
+            BASKETDUBS LOCKER ROOM
+          </div>
+          <div className="text-sm text-ink-black/60 font-roboto-slab">
+            Collect vintage gear, customize your player, build your legacy
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

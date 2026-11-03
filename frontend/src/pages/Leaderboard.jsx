@@ -1,5 +1,6 @@
 /**
  * Leaderboard Page - Top users by all-time points
+ * VINTAGE REDESIGN: Newspaper Style Standings
  */
 import { useAuth } from '../contexts/AuthContext'
 import { useState, useEffect } from 'react'
@@ -15,6 +16,7 @@ export default function Leaderboard() {
   const [currentUserData, setCurrentUserData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [activeView, setActiveView] = useState('overall')
 
   useEffect(() => {
     fetchLeaderboard()
@@ -44,166 +46,317 @@ export default function Leaderboard() {
     }
   }
 
-  const getMedalEmoji = (rank) => {
-    if (rank === 1) return '🥇'
-    if (rank === 2) return '🥈'
-    if (rank === 3) return '🥉'
-    return null
+  // Podium Component for Top 3
+  const Podium = ({ topPlayers }) => {
+    return (
+      <div className="card-vintage mb-8">
+        <div className="font-bebas text-2xl tracking-wider mb-6 text-center">
+          LEAGUE PODIUM
+        </div>
+        
+        <div className="flex items-end justify-center gap-6">
+          {[2, 1, 3].map(position => {
+            const player = topPlayers[position - 1]
+            if (!player) return null
+            
+            return (
+              <div key={player.id} className="text-center">
+                {/* Podium Stand */}
+                <div className={`
+                  flex flex-col items-center justify-end
+                  ${position === 1 ? 'h-32 bg-burnt-orange' : 
+                    position === 2 ? 'h-28 bg-vintage-navy' : 
+                    'h-24 bg-forest-green'}
+                  border-2 border-ink-black relative
+                `}>
+                  <div className="mt-4">
+                    <div className="font-bebas text-4xl text-vintage-cream">
+                      {position === 1 ? '🥇' : position === 2 ? '🥈' : '🥉'}
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Player Info */}
+                <div className="mt-4">
+                  <div className="font-bebas text-xl">{player.username}</div>
+                  <div className="text-sm text-ink-black/60">
+                    {player.all_time_points} PTS
+                  </div>
+                  <div className="text-xs text-ink-black/40 mt-1">
+                    {player.correct_predictions || 0} W • {player.win_rate || 0}%
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    )
   }
 
-  const getRankColor = (rank) => {
-    if (rank === 1) return 'text-yellow-600'
-    if (rank === 2) return 'text-gray-500'
-    if (rank === 3) return 'text-orange-600'
-    return 'text-gray-700'
+  // Newspaper Style Table Row
+  const LeaderboardRow = ({ player, rank, isCurrentUser }) => {
+    return (
+      <div className={`
+        flex items-center justify-between p-4 border-b border-ink-black/20
+        ${isCurrentUser ? 'bg-burnt-orange/10 border-l-2 border-l-burnt-orange' : ''}
+        hover:bg-ink-black/5 transition-colors duration-200
+      `}>
+        {/* Rank & Player */}
+        <div className="flex items-center gap-4">
+          <div className={`
+            w-10 h-10 flex items-center justify-center font-bebas text-lg
+            ${rank <= 3 ? 'bg-burnt-orange text-vintage-cream' : 'bg-ink-black/10'}
+            border border-ink-black/30
+          `}>
+            {rank}
+          </div>
+          
+          <div>
+            <div className="font-bebas text-lg">
+              {player.username}
+              {isCurrentUser && (
+                <span className="ml-2 text-xs text-burnt-orange">(YOU)</span>
+              )}
+            </div>
+            <div className="text-xs text-ink-black/60 font-roboto-slab">
+              {player.email?.split('@')[0] || 'Player'}
+            </div>
+          </div>
+        </div>
+        
+        {/* Stats */}
+        <div className="flex items-center gap-6">
+          <div className="text-right">
+            <div className="font-bebas text-xl text-burnt-orange">
+              {player.all_time_points}
+            </div>
+            <div className="text-xs text-ink-black/60">POINTS</div>
+          </div>
+          
+          <div className="text-right hidden md:block">
+            <div className="font-bebas">
+              {player.correct_predictions || 0}/{player.total_predictions || 0}
+            </div>
+            <div className="text-xs text-ink-black/60">RECORD</div>
+          </div>
+          
+          <div className="text-right hidden lg:block">
+            <div className="font-bebas">
+              {player.win_rate || 0}%
+            </div>
+            <div className="text-xs text-ink-black/60">ACCURACY</div>
+          </div>
+        </div>
+      </div>
+    )
   }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-vintage-cream flex items-center justify-center">
+        <div className="text-center">
+          <div className="scoreboard-panel inline-block px-8 py-6">
+            <div className="font-bebas text-2xl animate-pulse">LOADING STANDINGS...</div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-vintage-cream flex items-center justify-center">
+        <div className="text-center">
+          <div className="scoreboard-panel inline-block px-8 py-6">
+            <div className="font-bebas text-xl text-scoreboard-red mb-2">ERROR</div>
+            <div className="text-sm text-vintage-cream/80">{error}</div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const topPlayers = leaderboard.slice(0, 3)
+  const remainingPlayers = leaderboard.slice(3)
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow p-4 md:p-6 mb-4">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-            <div className="flex-1">
-              <h1 className="text-2xl md:text-3xl font-bold text-orange-600">🏆 Leaderboard</h1>
-              <p className="text-sm md:text-base text-gray-600 mt-1">Top predictors by all-time points</p>
+    <div className="min-h-screen bg-vintage-cream">
+      <Navigation />
+      
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        {/* Hero Section */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="scoreboard-text text-ink-black mb-2">THE LEAGUE</h1>
+              <div className="font-roboto-slab text-lg text-ink-black/60">
+                SEASON STANDINGS • GLOBAL RANKINGS • PLAYER STATS
+              </div>
             </div>
-            <div className="relative">
-              <Navigation currentPage="Leaderboard" />
+            
+            {/* View Toggle */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setActiveView('overall')}
+                className={`px-4 py-2 font-bebas uppercase tracking-wider border-2 ${
+                  activeView === 'overall' 
+                    ? 'border-ink-black bg-burnt-orange text-vintage-cream' 
+                    : 'border-ink-black/30 text-ink-black hover:bg-ink-black/5'
+                }`}
+              >
+                OVERALL
+              </button>
+              <button
+                onClick={() => setActiveView('weekly')}
+                className={`px-4 py-2 font-bebas uppercase tracking-wider border-2 ${
+                  activeView === 'weekly' 
+                    ? 'border-ink-black bg-burnt-orange text-vintage-cream' 
+                    : 'border-ink-black/30 text-ink-black hover:bg-ink-black/5'
+                }`}
+              >
+                WEEKLY
+              </button>
+              <button
+                onClick={() => setActiveView('streaks')}
+                className={`px-4 py-2 font-bebas uppercase tracking-wider border-2 ${
+                  activeView === 'streaks' 
+                    ? 'border-ink-black bg-burnt-orange text-vintage-cream' 
+                    : 'border-ink-black/30 text-ink-black hover:bg-ink-black/5'
+                }`}
+              >
+                STREAKS
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Current User Rank (if not in top 50) */}
-        {currentUserData && (
-          <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow p-6 mb-4 text-white">
-            <div className="flex justify-between items-center">
-              <div>
-                <div className="text-sm opacity-90">Your Rank</div>
-                <div className="text-3xl font-bold">#{currentUserRank}</div>
+        {/* Current User Card */}
+        {currentUserRank && currentUserData && (
+          <div className="card-vintage mb-8 bg-gradient-to-r from-forest-green/10 to-vintage-navy/10">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="font-bebas text-3xl text-burnt-orange">
+                  #{currentUserRank}
+                </div>
+                <div>
+                  <div className="font-bebas text-xl">{currentUserData.username}</div>
+                  <div className="text-sm text-ink-black/60">
+                    Your position in the league
+                  </div>
+                </div>
               </div>
-              <div className="text-right">
-                <div className="text-sm opacity-90">Your Points</div>
-                <div className="text-2xl font-bold">{currentUserData.all_time_points} pts</div>
-                <div className="text-xs opacity-75">
-                  {currentUserData.spendable_points} spendable
+              
+              <div className="flex items-center gap-6">
+                <div className="text-right">
+                  <div className="font-bebas text-2xl text-burnt-orange">
+                    {currentUserData.all_time_points}
+                  </div>
+                  <div className="text-xs text-ink-black/60">POINTS</div>
+                </div>
+                
+                <div className="text-right hidden md:block">
+                  <div className="font-bebas text-xl">
+                    {Math.round((currentUserData.correct_predictions / Math.max(currentUserData.total_predictions, 1)) * 100)}%
+                  </div>
+                  <div className="text-xs text-ink-black/60">ACCURACY</div>
+                </div>
+                
+                <div className="text-right hidden lg:block">
+                  <div className="font-bebas text-xl">
+                    {currentUserData.current_streak || 0}
+                  </div>
+                  <div className="text-xs text-ink-black/60">STREAK</div>
                 </div>
               </div>
             </div>
-            <div className="mt-2 text-sm opacity-90">
-              Keep predicting to climb the ranks! 🚀
+          </div>
+        )}
+
+        {/* Podium */}
+        {topPlayers.length > 0 && <Podium topPlayers={topPlayers} />}
+
+        {/* Standings Table */}
+        <div className="card-vintage">
+          <div className="flex items-center justify-between mb-6">
+            <div className="font-bebas text-2xl tracking-wider">
+              {activeView === 'overall' && 'OVERALL STANDINGS'}
+              {activeView === 'weekly' && 'WEEKLY RANKINGS'}
+              {activeView === 'streaks' && 'ACTIVE STREAKS'}
+            </div>
+            <div className="text-sm text-ink-black/60 font-roboto-slab">
+              {leaderboard.length} PLAYERS
             </div>
           </div>
-        )}
-
-        {/* Loading State */}
-        {loading && (
-          <div className="bg-white rounded-lg shadow p-8 text-center">
-            <div className="text-gray-600">Loading leaderboard...</div>
-          </div>
-        )}
-
-        {/* Error State */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-            <p className="text-red-600">{error}</p>
-            <button 
-              onClick={fetchLeaderboard}
-              className="mt-2 text-red-700 underline"
-            >
-              Try again
-            </button>
-          </div>
-        )}
-
-        {/* Leaderboard Table */}
-        {!loading && !error && (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
-                      Rank
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
-                      Player
-                    </th>
-                    <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">
-                      All-Time Points
-                    </th>
-                    <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">
-                      Spendable
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {leaderboard.map((player) => (
-                    <tr 
-                      key={player.user_id}
-                      className={`hover:bg-gray-50 transition-colors ${
-                        player.is_current_user ? 'bg-blue-50' : ''
-                      }`}
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <span className={`text-lg font-bold ${getRankColor(player.rank)}`}>
-                            #{player.rank}
-                          </span>
-                          {getMedalEmoji(player.rank) && (
-                            <span className="text-2xl">{getMedalEmoji(player.rank)}</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <span className={`font-semibold ${
-                            player.is_current_user ? 'text-blue-600' : 'text-gray-800'
-                          }`}>
-                            {player.username}
-                          </span>
-                          {player.is_current_user && (
-                            <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded">
-                              You
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <span className="text-lg font-bold text-orange-600">
-                          {player.all_time_points}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <span className="text-gray-600">
-                          {player.spendable_points}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          
+          {/* Table Header */}
+          <div className="flex items-center justify-between p-4 border-b-2 border-ink-black bg-ink-black/5">
+            <div className="font-bebas uppercase tracking-wider">PLAYER</div>
+            <div className="flex items-center gap-6">
+              <div className="font-bebas uppercase tracking-wider">POINTS</div>
+              <div className="font-bebas uppercase tracking-wider hidden md:block">RECORD</div>
+              <div className="font-bebas uppercase tracking-wider hidden lg:block">ACCURACY</div>
             </div>
-
-            {/* Empty State */}
-            {leaderboard.length === 0 && (
-              <div className="p-8 text-center text-gray-500">
-                <div className="text-4xl mb-2">🏀</div>
-                <p>No players on the leaderboard yet.</p>
-                <p className="text-sm mt-1">Be the first to make predictions!</p>
+          </div>
+          
+          {/* Table Body */}
+          <div className="max-h-[500px] overflow-y-auto">
+            {remainingPlayers.map((player, index) => (
+              <LeaderboardRow
+                key={player.id}
+                player={player}
+                rank={index + 4}
+                isCurrentUser={player.id === currentUserData?.id}
+              />
+            ))}
+            
+            {remainingPlayers.length === 0 && (
+              <div className="text-center py-12">
+                <div className="font-bebas text-xl mb-2">NO ADDITIONAL PLAYERS</div>
+                <div className="text-ink-black/60 font-roboto-slab">
+                  More players will appear as they join the league
+                </div>
               </div>
             )}
           </div>
-        )}
-
-        {/* Footer Info */}
-        {!loading && !error && leaderboard.length > 0 && (
-          <div className="mt-4 text-center text-sm text-gray-500">
-            <p>Showing top {leaderboard.length} players</p>
-            <p className="mt-1">Rankings update in real-time as games are scored</p>
+        </div>
+        
+        {/* League Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+          <div className="card-vintage text-center">
+            <div className="font-bebas text-3xl text-burnt-orange mb-2">
+              {leaderboard.reduce((sum, player) => sum + (player.all_time_points || 0), 0)}
+            </div>
+            <div className="text-sm text-ink-black/60">TOTAL LEAGUE POINTS</div>
           </div>
-        )}
-      </div>
+          
+          <div className="card-vintage text-center">
+            <div className="font-bebas text-3xl text-forest-green mb-2">
+              {leaderboard.reduce((sum, player) => sum + (player.correct_predictions || 0), 0)}
+            </div>
+            <div className="text-sm text-ink-black/60">TOTAL CORRECT PICKS</div>
+          </div>
+          
+          <div className="card-vintage text-center">
+            <div className="font-bebas text-3xl text-vintage-navy mb-2">
+              {Math.round(leaderboard.reduce((sum, player) => sum + (player.win_rate || 0), 0) / Math.max(leaderboard.length, 1))}%
+            </div>
+            <div className="text-sm text-ink-black/60">AVERAGE ACCURACY</div>
+          </div>
+        </div>
+      </main>
+      
+      {/* Vintage Footer */}
+      <footer className="mt-12 py-6 border-t-2 border-ink-black/20 bg-vintage-navy/5">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <div className="font-bebas text-lg tracking-wider mb-2">
+            BASKETDUBS LEAGUE STANDINGS
+          </div>
+          <div className="text-sm text-ink-black/60 font-roboto-slab">
+            Compete for the top spot, track your rank, build your legacy
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
